@@ -1,6 +1,9 @@
 <?php
 // Copy this file to config.php and fill in your details.
 return [
+    // Folder for the leads database - keep it OUTSIDE the public web root
+    'data_dir' => __DIR__ . '/data',
+
     // Admin panel (CMS) login - /admin
     'admin_user' => 'admin',
     'admin_pass' => 'change-this-password',

@@ -18,14 +18,18 @@ One-page website (PHP + HTML + Tailwind CSS) for selling guest posts & banner ad
 | `admin/index.php` | Leads CMS |
 | `includes/` | DB + mail helpers |
 | `config.sample.php` | Copy to `config.php` and fill in admin password + SMTP |
-| `deploy/setup.sh` | One-command VPS setup (nginx + PHP-FPM + SSL) |
+| `deploy/cloudpanel.sh` | One-command deploy/update on CloudPanel VPS |
 
-## Deploy on VPS (Ubuntu)
-Open the VPS **Web console** (or `ssh root@<server-ip>`) and run:
+## Deploy on CloudPanel VPS
+1. CloudPanel (`https://<server-ip>:8443`) → **Sites → Add Site → Create a PHP Site** → domain `guest2kart.com`, PHP 8.x, note the **Site User**.
+2. In the site → **SSL/TLS → Actions → New Let's Encrypt Certificate**.
+3. In the VPS console (as root):
 ```bash
-curl -fsSL https://raw.githubusercontent.com/nk94076/guest2kart/main/deploy/setup.sh | bash
+curl -fsSL https://raw.githubusercontent.com/nk94076/guest2kart/main/deploy/cloudpanel.sh | bash -s -- <site-user>
 ```
-Then add SMTP details in `/var/www/guest2kart/config.php`. Re-run the same command any time to update to the latest code.
+4. Add SMTP details in `/home/<site-user>/htdocs/guest2kart.com/config.php`.
+
+Re-run step 3 any time to update. Leads DB lives in `/home/<site-user>/guest2kart-data/` (outside the web root).
 
 ### Email (Gmail example)
 1. Turn on 2-Step Verification in your Google account.
