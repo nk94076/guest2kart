@@ -112,11 +112,14 @@ $csrf = e($_SESSION['csrf']);
 </head>
 <body class="bg-slate-100 text-slate-800">
   <header class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 px-6 py-4 text-white">
-    <h1 class="text-xl font-bold">Guest2Kart • Leads CMS</h1>
-    <div class="flex gap-2 text-sm">
+    <h1 class="text-xl font-bold">Guest2Kart Admin</h1>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="./" class="rounded-lg bg-slate-700 px-4 py-2">📥 Leads</a>
+      <a href="content.php" class="rounded-lg px-4 py-2 hover:bg-slate-700">✏️ Website Content</a>
+      <a href="../" target="_blank" class="rounded-lg px-4 py-2 hover:bg-slate-700">🌐 View Site</a>
       <a href="?action=csv" class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold hover:bg-indigo-500">⬇ Export CSV</a>
-      <a href="?action=logout" class="rounded-lg bg-slate-700 px-4 py-2 hover:bg-slate-600">Logout</a>
-    </div>
+      <a href="?action=logout" class="rounded-lg px-4 py-2 hover:bg-slate-700">Logout</a>
+    </nav>
   </header>
 
   <main class="mx-auto max-w-7xl p-6">

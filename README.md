@@ -7,6 +7,7 @@ One-page website (PHP + HTML + Tailwind CSS) for selling guest posts & banner ad
 - Contact form → every lead is saved in the built-in **CMS** (`/admin/`, SQLite database)
 - Auto email to the person who filled the form: *"Thank you… we will contact you soon"* (PHPMailer + SMTP)
 - Optional copy of every new lead to your own email
+- **Website Content editor** (`/admin/content.php`, like WordPress): logo, favicon, colours, every heading/text, services, steps, pricing plans, FAQ, testimonial, form options, footer/WhatsApp, SEO, auto-email text; show/hide each section
 - Admin panel: login, search, filter, status (new / contacted / converted / closed), notes, delete, CSV export
 - Spam protection: honeypot field + max 5 submissions per IP per hour
 
@@ -16,6 +17,8 @@ One-page website (PHP + HTML + Tailwind CSS) for selling guest posts & banner ad
 | `index.php` | Landing page |
 | `submit.php` | Form handler (save + email) |
 | `admin/index.php` | Leads CMS |
+| `admin/content.php` | Website content editor |
+| `includes/content.php` | Default website content |
 | `includes/` | DB + mail helpers |
 | `config.sample.php` | Copy to `config.php` and fill in admin password + SMTP |
 | `deploy/cloudpanel.sh` | One-command deploy/update on CloudPanel VPS |

@@ -35,13 +35,13 @@ function send_lead_emails(array $config, array $lead): bool
         return false;
     }
 
-    $html = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1f2937">'
-        . '<h2 style="color:#4f46e5">Hi ' . e($lead['name']) . ',</h2>'
-        . '<p>Thank you for reaching out to <b>Guest2Kart</b>!</p>'
-        . '<p>We have received your request for <b>' . e($lead['service']) . '</b>. '
-        . 'Our team will review it and <b>we will contact you soon</b>.</p>'
-        . '<p>Regards,<br/>Team Guest2Kart<br/><a href="https://guest2kart.com">guest2kart.com</a></p></div>';
-    send_mail($config, $lead['email'], 'Thank you for contacting Guest2Kart - We will contact you soon', $html);
+    require_once __DIR__ . '/content.php';
+    $tpl = content()['email'];
+    $vars = ['{name}' => $lead['name'], '{service}' => $lead['service'], '{email}' => $lead['email']];
+    $subject = strtr($tpl['subject'], $vars);
+    $html = '<div style="font-family:Arial,sans-serif;max-width:560px;margin:auto;color:#1f2937;line-height:1.6">'
+        . nl2br(e(strtr($tpl['body'], $vars))) . '</div>';
+    send_mail($config, $lead['email'], $subject, $html);
 
     if (!empty($config['admin_notify_email'])) {
         $rows = '';
