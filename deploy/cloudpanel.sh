@@ -15,7 +15,7 @@ REPO="https://github.com/nk94076/guest2kart.git"
 
 if [ -d "$ROOT/.git" ]; then
   echo "==> Updating code"
-  git -C "$ROOT" pull --ff-only
+  git -c safe.directory="$ROOT" -C "$ROOT" pull --ff-only
 else
   echo "==> Installing code"
   if [ -d "$ROOT" ] && [ -n "$(ls -A "$ROOT")" ]; then
