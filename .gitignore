@@ -1,3 +1,4 @@
-node_modules/
-.env
-data/*.json
+vendor/
+config.php
+data/*
+!data/.htaccess

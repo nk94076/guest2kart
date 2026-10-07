@@ -1,0 +1,5 @@
+Options -Indexes
+<FilesMatch "^(config\.php|config\.sample\.php|composer\.(json|lock))$">
+  Require all denied
+</FilesMatch>
+RedirectMatch 404 ^/(vendor|deploy|\.git)(/|$)

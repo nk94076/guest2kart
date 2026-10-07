@@ -1,0 +1,8 @@
+{
+  "name": "nk94076/guest2kart",
+  "description": "Guest2Kart - guest posting & banner placement on 100K+ traffic websites",
+  "require": {
+    "php": ">=8.0",
+    "phpmailer/phpmailer": "^6.9"
+  }
+}
