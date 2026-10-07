@@ -11,7 +11,7 @@ function db(): PDO
 {
     static $pdo = null;
     if ($pdo === null) {
-        $dir = __DIR__ . '/../data';
+        $dir = $GLOBALS['config']['data_dir'] ?? (__DIR__ . '/../data');
         if (!is_dir($dir)) {
             mkdir($dir, 0775, true);
         }
