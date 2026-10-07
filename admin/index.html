@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guest2Kart Admin – Leads</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f5f7ff; color: #1f2937; }
+    header { background: #0f172a; color: #fff; padding: 16px 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+    header h1 { font-size: 20px; margin: 0; }
+    main { padding: 24px; max-width: 1300px; margin: auto; }
+    .stats { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; }
+    .stat { background: #fff; padding: 14px 20px; border-radius: 12px; min-width: 130px; }
+    .stat b { font-size: 22px; display: block; }
+    .toolbar { display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
+    input, select, button, a.btn { padding: 9px 12px; border-radius: 8px; border: 1px solid #d1d5db; font: inherit; font-size: 14px; }
+    button, a.btn { background: #4f46e5; color: #fff; border: 0; cursor: pointer; text-decoration: none; }
+    button.del { background: #ef4444; }
+    .table-wrap { overflow-x: auto; background: #fff; border-radius: 12px; }
+    table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    th, td { padding: 12px; border-bottom: 1px solid #eef0f6; text-align: left; vertical-align: top; }
+    th { background: #f8fafc; }
+    .msg { max-width: 280px; white-space: pre-wrap; }
+    .tag { font-size: 12px; padding: 2px 8px; border-radius: 10px; background: #e0e7ff; }
+    textarea { width: 180px; font: inherit; font-size: 13px; border: 1px solid #d1d5db; border-radius: 6px; }
+    .empty { padding: 40px; text-align: center; color: #64748b; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Guest2Kart • Leads CMS</h1>
+    <a class="btn" href="/api/admin/leads.csv">⬇ Export CSV</a>
+  </header>
+  <main>
+    <div class="stats" id="stats"></div>
+    <div class="toolbar">
+      <input id="search" placeholder="Search name, email, website..." />
+      <select id="filter">
+        <option value="">All status</option>
+        <option>new</option><option>contacted</option><option>converted</option><option>closed</option>
+      </select>
+      <button onclick="load()">↻ Refresh</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><th>Date</th><th>Name / Email</th><th>Phone</th><th>Website</th><th>Service</th><th>Budget</th><th>Message</th><th>Email sent</th><th>Status</th><th>Note</th><th></th></tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </main>
+  <script>
+    let leads = [];
+    const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    async function load() {
+      leads = await (await fetch('/api/admin/leads')).json();
+      render();
+    }
+
+    function render() {
+      const q = document.getElementById('search').value.toLowerCase();
+      const f = document.getElementById('filter').value;
+      const list = leads.filter((l) =>
+        (!f || l.status === f) && [l.name, l.email, l.website, l.phone].join(' ').toLowerCase().includes(q));
+
+      const count = (s) => leads.filter((l) => l.status === s).length;
+      document.getElementById('stats').innerHTML =
+        [['Total', leads.length], ['New', count('new')], ['Contacted', count('contacted')], ['Converted', count('converted')]]
+          .map(([k, v]) => `<div class="stat"><b>${v}</b>${k}</div>`).join('');
+
+      document.getElementById('rows').innerHTML = list.length ? list.map((l) => `
+        <tr>
+          <td>${new Date(l.createdAt).toLocaleString()}</td>
+          <td><b>${esc(l.name)}</b><br/><a href="mailto:${esc(l.email)}">${esc(l.email)}</a></td>
+          <td>${esc(l.phone)}</td>
+          <td>${esc(l.website)}</td>
+          <td><span class="tag">${esc(l.service)}</span></td>
+          <td>${esc(l.budget)}</td>
+          <td class="msg">${esc(l.message)}</td>
+          <td>${l.emailSent ? '✅' : '❌'}</td>
+          <td><select onchange="update('${l.id}', { status: this.value })">
+            ${['new', 'contacted', 'converted', 'closed'].map((s) => `<option ${s === l.status ? 'selected' : ''}>${s}</option>`).join('')}
+          </select></td>
+          <td><textarea rows="2" onchange="update('${l.id}', { note: this.value })">${esc(l.note)}</textarea></td>
+          <td><button class="del" onclick="removeLead('${l.id}')">Delete</button></td>
+        </tr>`).join('') : '<tr><td colspan="11" class="empty">No leads yet.</td></tr>';
+    }
+
+    async function update(id, body) {
+      await fetch('/api/admin/leads/' + id, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      load();
+    }
+
+    async function removeLead(id) {
+      if (!confirm('Delete this lead?')) return;
+      await fetch('/api/admin/leads/' + id, { method: 'DELETE' });
+      load();
+    }
+
+    document.getElementById('search').oninput = render;
+    document.getElementById('filter').onchange = render;
+    load();
+  </script>
+</body>
+</html>
