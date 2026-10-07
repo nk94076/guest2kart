@@ -1,21 +1,23 @@
 #!/usr/bin/env bash
-# One-time setup of Guest2Kart on an Ubuntu VPS (run as root).
-# Usage: bash setup.sh            (re-run any time to update to the latest code)
+# One-time setup of Guest2Kart (PHP) on an Ubuntu VPS (run as root).
+# Re-run any time to update to the latest code.
 set -euo pipefail
 
 DOMAIN="guest2kart.com"
 APP_DIR="/var/www/guest2kart"
 REPO="https://github.com/nk94076/guest2kart.git"
-PORT=3100
 
 echo "==> Installing packages"
+export DEBIAN_FRONTEND=noninteractive
 apt-get update -y
-apt-get install -y curl git nginx certbot python3-certbot-nginx
-if ! command -v node >/dev/null || [ "$(node -v | cut -d. -f1 | tr -d v)" -lt 18 ]; then
-  curl -fsSL https://deb.nodesource.com/setup_20.x | bash -
-  apt-get install -y nodejs
+apt-get install -y git unzip nginx php-fpm php-sqlite3 php-mbstring php-curl php-xml composer \
+  certbot python3-certbot-nginx
+
+PHP_SOCK=$(ls /run/php/php*-fpm.sock 2>/dev/null | head -1)
+if [ -z "$PHP_SOCK" ]; then
+  systemctl restart "$(systemctl list-unit-files 'php*-fpm.service' --no-legend | awk '{print $1}' | head -1)"
+  PHP_SOCK=$(ls /run/php/php*-fpm.sock | head -1)
 fi
-command -v pm2 >/dev/null || npm install -g pm2
 
 echo "==> Fetching code"
 if [ -d "$APP_DIR/.git" ]; then
@@ -24,34 +26,35 @@ else
   git clone "$REPO" "$APP_DIR"
 fi
 cd "$APP_DIR"
-npm install --omit=dev
+COMPOSER_ALLOW_SUPERUSER=1 composer install --no-dev --no-interaction --optimize-autoloader
 
-if [ ! -f .env ]; then
-  cp .env.example .env
-  sed -i "s/^PORT=.*/PORT=$PORT/" .env
+if [ ! -f config.php ]; then
+  cp config.sample.php config.php
   PASS=$(openssl rand -base64 12 | tr -d '/+=')
-  sed -i "s/^ADMIN_PASS=.*/ADMIN_PASS=$PASS/" .env
-  echo "==> Created .env  (admin password: $PASS  - edit SMTP settings in $APP_DIR/.env)"
+  sed -i "s/'change-this-password'/'$PASS'/" config.php
+  echo "==> Created config.php (admin password: $PASS) - add SMTP details in $APP_DIR/config.php"
 fi
-
-echo "==> Starting app with pm2"
-pm2 startOrReload server.js --name guest2kart --update-env 2>/dev/null || pm2 start server.js --name guest2kart
-pm2 save
-pm2 startup systemd -u root --hp /root >/dev/null || true
+mkdir -p data
+chown -R www-data:www-data data
+chmod 640 config.php && chown root:www-data config.php
 
 echo "==> Configuring nginx"
 cat > /etc/nginx/sites-available/guest2kart <<EOF
 server {
     listen 80;
     server_name $DOMAIN www.$DOMAIN;
+    root $APP_DIR;
+    index index.php;
     client_max_body_size 1m;
-    location / {
-        proxy_pass http://127.0.0.1:$PORT;
-        proxy_http_version 1.1;
-        proxy_set_header Host \$host;
-        proxy_set_header X-Real-IP \$remote_addr;
-        proxy_set_header X-Forwarded-For \$proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto \$scheme;
+
+    location ~ ^/(data|includes|vendor|deploy)(/|\$) { deny all; return 404; }
+    location ~ /(\.|config\.php|config\.sample\.php|composer\.) { deny all; return 404; }
+
+    location / { try_files \$uri \$uri/ /index.php?\$query_string; }
+
+    location ~ \.php\$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass unix:$PHP_SOCK;
     }
 }
 EOF
@@ -64,5 +67,5 @@ certbot --nginx -d "$DOMAIN" -d "www.$DOMAIN" --non-interactive --agree-tos \
   --register-unsafely-without-email --redirect || echo "!! SSL failed - check DNS, then re-run this script"
 
 echo
-echo "Done! Website: https://$DOMAIN   Admin: https://$DOMAIN/admin (user: admin)"
-grep ^ADMIN_PASS .env
+echo "Done! Website: https://$DOMAIN   Admin: https://$DOMAIN/admin/ (user: admin)"
+grep "'admin_pass'" config.php
