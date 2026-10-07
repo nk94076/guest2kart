@@ -2,3 +2,6 @@ vendor/
 config.php
 data/*
 !data/.htaccess
+uploads/*
+!uploads/.htaccess
+node_modules/

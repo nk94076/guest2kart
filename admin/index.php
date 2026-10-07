@@ -34,7 +34,7 @@ if (empty($_SESSION['admin']) && $_SERVER['REQUEST_METHOD'] === 'POST' && isset(
 if (empty($_SESSION['admin'])): ?>
 <!DOCTYPE html>
 <html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Guest2Kart Admin Login</title><meta name="robots" content="noindex" /><script src="https://cdn.tailwindcss.com"></script></head>
+<title>Guest2Kart Admin Login</title><meta name="robots" content="noindex" /><link rel="stylesheet" href="../assets/app.css" /></head>
 <body class="grid min-h-screen place-items-center bg-slate-100 p-4">
   <form method="post" class="w-full max-w-sm rounded-2xl bg-white p-8 shadow-xl">
     <h1 class="mb-6 text-2xl font-bold text-slate-900">Guest<span class="text-indigo-600">2</span>Kart Admin</h1>
@@ -108,15 +108,18 @@ $csrf = e($_SESSION['csrf']);
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guest2Kart Admin – Leads</title><meta name="robots" content="noindex" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/app.css" />
 </head>
 <body class="bg-slate-100 text-slate-800">
   <header class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 px-6 py-4 text-white">
-    <h1 class="text-xl font-bold">Guest2Kart • Leads CMS</h1>
-    <div class="flex gap-2 text-sm">
+    <h1 class="text-xl font-bold">Guest2Kart Admin</h1>
+    <nav class="flex flex-wrap gap-2 text-sm">
+      <a href="./" class="rounded-lg bg-slate-700 px-4 py-2">📥 Leads</a>
+      <a href="content.php" class="rounded-lg px-4 py-2 hover:bg-slate-700">✏️ Website Content</a>
+      <a href="../" target="_blank" class="rounded-lg px-4 py-2 hover:bg-slate-700">🌐 View Site</a>
       <a href="?action=csv" class="rounded-lg bg-indigo-600 px-4 py-2 font-semibold hover:bg-indigo-500">⬇ Export CSV</a>
-      <a href="?action=logout" class="rounded-lg bg-slate-700 px-4 py-2 hover:bg-slate-600">Logout</a>
-    </div>
+      <a href="?action=logout" class="rounded-lg px-4 py-2 hover:bg-slate-700">Logout</a>
+    </nav>
   </header>
 
   <main class="mx-auto max-w-7xl p-6">
