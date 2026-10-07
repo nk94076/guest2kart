@@ -24,3 +24,11 @@ npm start
 3. Put your Gmail in `SMTP_USER` and the app password in `SMTP_PASS`.
 
 Leads are stored in `data/leads.json`. Host on any Node.js server (VPS, Render, Railway, Hostinger Node hosting, etc.) with a persistent disk.
+
+## Deploy on VPS (Ubuntu)
+Open the VPS **Web console** (or `ssh root@<server-ip>`) and run:
+```bash
+curl -fsSL https://raw.githubusercontent.com/nk94076/guest2kart/main/deploy/setup.sh | bash
+```
+Then set SMTP details in `/var/www/guest2kart/.env` and run `pm2 restart guest2kart`.
+Re-run the same command any time to update to the latest code.
