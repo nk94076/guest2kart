@@ -3,6 +3,7 @@ declare(strict_types=1);
 
 require __DIR__ . '/../includes/bootstrap.php';
 require __DIR__ . '/../includes/content.php';
+require __DIR__ . '/../includes/icons.php';
 
 session_set_cookie_params(['httponly' => true, 'samesite' => 'Strict', 'secure' => !empty($_SERVER['HTTPS'])]);
 session_start();
@@ -13,14 +14,14 @@ if (empty($_SESSION['admin'])) {
 
 const UPLOAD_TYPES = ['image/png' => 'png', 'image/jpeg' => 'jpg', 'image/webp' => 'webp', 'image/gif' => 'gif',
                       'image/x-icon' => 'ico', 'image/vnd.microsoft.icon' => 'ico'];
-const UPLOAD_FIELDS = ['site.logo', 'site.favicon', 'hero.image'];
+const UPLOAD_FIELDS = ['site.logo', 'site.favicon', 'hero.image', 'why.image'];
 
 // Item templates for repeatable lists: [section, key] => fields
 const LISTS = [
-    'hero.stats'     => ['value' => '', 'label' => ''],
+    'hero.stats'     => ['icon' => '', 'value' => '', 'label' => ''],
     'services.items' => ['icon' => '', 'title' => '', 'text' => ''],
-    'how.items'      => ['title' => '', 'text' => ''],
-    'pricing.items'  => ['name' => '', 'price' => '', 'suffix' => '', 'featured' => false, 'service' => '', 'button' => '', 'features' => ''],
+    'how.items'      => ['icon' => '', 'title' => '', 'text' => ''],
+    'pricing.items'  => ['name' => '', 'tagline' => '', 'price' => '', 'suffix' => '', 'featured' => false, 'service' => '', 'button' => '', 'features' => ''],
     'faq.items'      => ['q' => '', 'a' => ''],
 ];
 
@@ -155,6 +156,12 @@ function repeater(array $c, string $sec, string $key, string $label, array $fiel
           <?php foreach ($fields as $k => [$lbl, $type]): $n = "{$base}[$i][$k]"; $val = $row[$k] ?? ''; ?>
             <?php if ($type === 'area'): ?>
               <label class="block text-xs font-semibold text-slate-600 md:col-span-2"><?= e($lbl) ?><textarea name="<?= $n ?>" rows="3" class="mt-1 w-full rounded border px-2 py-1.5 text-sm font-normal"><?= e((string) $val) ?></textarea></label>
+            <?php elseif ($type === 'icon'): ?>
+              <label class="block text-xs font-semibold text-slate-600"><?= e($lbl) ?>
+                <span class="mt-1 flex items-center gap-2"><span class="grid h-9 w-9 shrink-0 place-items-center rounded bg-white text-emerald-800 ring-1 ring-slate-200"><?= icon((string) ($val ?: 'star'), 'h-5 w-5') ?></span>
+                <select name="<?= $n ?>" onchange="this.previousElementSibling.innerHTML = ICONS[this.value] || ''" class="w-full rounded border bg-white px-2 py-1.5 text-sm font-normal">
+                  <?php foreach (ICON_CHOICES as $ic): ?><option <?= $ic === $val ? 'selected' : '' ?>><?= $ic ?></option><?php endforeach; ?>
+                </select></span></label>
             <?php elseif ($type === 'check'): ?>
               <label class="flex items-center gap-2 text-xs font-semibold text-slate-600"><input type="checkbox" name="<?= $n ?>" value="1" <?= $val ? 'checked' : '' ?> /> <?= e($lbl) ?></label>
             <?php else: ?>
@@ -190,7 +197,7 @@ function section_end(): void { echo '</div></section>'; }
 <head>
   <meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Guest2Kart Admin – Website Content</title><meta name="robots" content="noindex" />
-  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="../assets/app.css" />
 </head>
 <body class="bg-slate-100 text-slate-800">
   <header class="sticky top-0 z-20 flex flex-wrap items-center justify-between gap-3 bg-slate-900 px-6 py-3 text-white">
@@ -207,7 +214,7 @@ function section_end(): void { echo '</div></section>'; }
     <aside class="sticky top-20 hidden h-fit w-48 shrink-0 space-y-1 text-sm lg:block">
       <?php foreach (['brand' => '🎨 Logo & Branding', 'hero' => '🏠 Hero / Top', 'services' => '🧩 Services', 'how' => '🪜 How it Works',
                       'pricing' => '💰 Pricing', 'why' => '⭐ Why Us', 'faq' => '❓ FAQ', 'contact' => '📝 Contact Form',
-                      'footer' => '📞 Footer & Contact', 'email' => '✉️ Auto Email'] as $id => $t): ?>
+                      'footer' => '📞 Footer & Social', 'email' => '✉️ Auto Email'] as $id => $t): ?>
         <a href="#<?= $id ?>" class="block rounded-lg px-3 py-2 hover:bg-white"><?= $t ?></a>
       <?php endforeach; ?>
     </aside>
@@ -243,35 +250,37 @@ function section_end(): void { echo '</div></section>'; }
           <?php area($c, 'hero', 'subtitle', 'Sub text'); ?>
           <?php text($c, 'hero', 'button1', 'Button 1 text', 'Leave empty to hide'); ?>
           <?php text($c, 'hero', 'button2', 'Button 2 text', 'Leave empty to hide'); ?>
-          <?php image($c, 'hero', 'image', 'Right side image (optional)', 'Upload to replace the demo card on the right.'); ?>
-          <?php text($c, 'hero', 'banner_text', 'Demo card – banner text'); ?>
-          <?php text($c, 'hero', 'card_post', 'Demo card – post title'); ?>
-          <?php text($c, 'hero', 'card_post_sub', 'Demo card – post sub text'); ?>
-          <?php text($c, 'hero', 'card_stat1', 'Demo card – stat 1'); ?>
-          <?php text($c, 'hero', 'card_stat2', 'Demo card – stat 2'); ?>
-          <?php repeater($c, 'hero', 'stats', 'Numbers under buttons', ['value' => ['Number', 'text'], 'label' => ['Label', 'text']], 'Add number'); ?>
+          <?php image($c, 'hero', 'image', 'Right side photo (recommended)', 'e.g. laptop/office photo, ~1200×900 px. Empty = illustrated laptop.'); ?>
+          <?php text($c, 'hero', 'banner_text', 'Illustrated laptop – screen text'); ?>
+          <?php text($c, 'hero', 'float_value', 'Floating card – number', 'e.g. +132%. Leave empty to hide'); ?>
+          <?php text($c, 'hero', 'float_label', 'Floating card – label'); ?>
+          <?php repeater($c, 'hero', 'stats', 'Numbers under buttons', ['icon' => ['Icon', 'icon'], 'value' => ['Number', 'text'], 'label' => ['Label', 'text']], 'Add number'); ?>
         <?php section_end(); ?>
 
         <?php section_start('services', 'Services'); ?>
           <?php toggle($c, 'services'); ?>
+          <?php text($c, 'services', 'eyebrow', 'Small label above title'); ?>
           <?php text($c, 'services', 'title', 'Title'); ?>
           <?php text($c, 'services', 'subtitle', 'Sub title'); ?>
-          <?php repeater($c, 'services', 'items', 'Service cards', ['icon' => ['Icon (emoji)', 'text'], 'title' => ['Title', 'text'], 'text' => ['Description', 'area']], 'Add service'); ?>
+          <?php text($c, 'services', 'link_text', 'Card link text', 'e.g. Learn More. Empty = hide'); ?>
+          <?php repeater($c, 'services', 'items', 'Service cards', ['icon' => ['Icon', 'icon'], 'title' => ['Title', 'text'], 'text' => ['Description', 'area']], 'Add service'); ?>
         <?php section_end(); ?>
 
         <?php section_start('how', 'How it Works'); ?>
           <?php toggle($c, 'how'); ?>
+          <?php text($c, 'how', 'eyebrow', 'Small label above title'); ?>
           <?php text($c, 'how', 'title', 'Title'); ?>
           <?php text($c, 'how', 'subtitle', 'Sub title'); ?>
-          <?php repeater($c, 'how', 'items', 'Steps', ['title' => ['Step title', 'text'], 'text' => ['Step text', 'text']], 'Add step'); ?>
+          <?php repeater($c, 'how', 'items', 'Steps', ['icon' => ['Icon', 'icon'], 'title' => ['Step title', 'text'], 'text' => ['Step text', 'text']], 'Add step'); ?>
         <?php section_end(); ?>
 
         <?php section_start('pricing', 'Pricing'); ?>
           <?php toggle($c, 'pricing'); ?>
+          <?php text($c, 'pricing', 'eyebrow', 'Small label above title'); ?>
           <?php text($c, 'pricing', 'title', 'Title'); ?>
           <?php text($c, 'pricing', 'subtitle', 'Sub title'); ?>
           <?php repeater($c, 'pricing', 'items', 'Plans', [
-              'name' => ['Plan name', 'text'], 'price' => ['Price (e.g. ₹999 or $49)', 'text'], 'suffix' => ['After price (e.g. / post)', 'text'],
+              'name' => ['Plan name', 'text'], 'tagline' => ['Tagline (e.g. For Growing Brands)', 'text'], 'price' => ['Price (e.g. ₹999 or $49)', 'text'], 'suffix' => ['After price (e.g. / post)', 'text'],
               'button' => ['Button text', 'text'], 'service' => ['Form service to preselect', 'text'], 'featured' => ['Highlight as "Most Popular"', 'check'],
               'features' => ['Features (one per line)', 'area'],
           ], 'Add plan'); ?>
@@ -279,15 +288,21 @@ function section_end(): void { echo '</div></section>'; }
 
         <?php section_start('why', 'Why Choose Us + Testimonial'); ?>
           <?php toggle($c, 'why'); ?>
+          <?php text($c, 'why', 'eyebrow', 'Small label above title'); ?>
           <?php text($c, 'why', 'title', 'Title'); ?>
           <?php area($c, 'why', 'points', 'Points (one per line)', '', 6); ?>
+          <?php image($c, 'why', 'image', 'Photo', 'Portrait photo, ~800×1000 px'); ?>
+          <?php text($c, 'why', 'rating', 'Star rating (0–5)'); ?>
           <?php area($c, 'why', 'testimonial', 'Testimonial text', 'Leave empty to hide'); ?>
           <?php text($c, 'why', 'testimonial_author', 'Testimonial author'); ?>
         <?php section_end(); ?>
 
         <?php section_start('faq', 'FAQ'); ?>
           <?php toggle($c, 'faq'); ?>
+          <?php text($c, 'faq', 'eyebrow', 'Small label above title'); ?>
           <?php text($c, 'faq', 'title', 'Title'); ?>
+          <?php text($c, 'faq', 'link_text', 'Link text (e.g. View All FAQs)', 'Empty = hide'); ?>
+          <?php text($c, 'faq', 'link_url', 'Link URL'); ?>
           <?php repeater($c, 'faq', 'items', 'Questions', ['q' => ['Question', 'text'], 'a' => ['Answer', 'area']], 'Add question'); ?>
         <?php section_end(); ?>
 
@@ -297,6 +312,7 @@ function section_end(): void { echo '</div></section>'; }
           <?php text($c, 'contact', 'title_after', 'Heading – end'); ?>
           <?php area($c, 'contact', 'text', 'Text'); ?>
           <?php area($c, 'contact', 'points', 'Points (one per line)'); ?>
+          <?php text($c, 'contact', 'form_title', 'Form heading'); ?>
           <?php area($c, 'contact', 'service_options', 'Service dropdown options (one per line)', '', 5); ?>
           <?php area($c, 'contact', 'budget_options', 'Budget dropdown options (one per line)', '', 4); ?>
           <?php text($c, 'contact', 'button', 'Submit button text'); ?>
@@ -304,10 +320,14 @@ function section_end(): void { echo '</div></section>'; }
         <?php section_end(); ?>
 
         <?php section_start('footer', 'Footer & Contact Details', 'Filled details show in the footer. WhatsApp also adds a floating chat button.'); ?>
+          <?php area($c, 'footer', 'description', 'Short description under logo', '', 2); ?>
           <?php text($c, 'footer', 'email', 'Email'); ?>
           <?php text($c, 'footer', 'phone', 'Phone'); ?>
           <?php text($c, 'footer', 'whatsapp', 'WhatsApp number', 'With country code, e.g. 919876543210'); ?>
           <?php text($c, 'footer', 'text', 'Copyright text', '{year} = current year'); ?>
+          <?php foreach (['linkedin' => 'LinkedIn', 'twitter' => 'X / Twitter', 'facebook' => 'Facebook', 'instagram' => 'Instagram', 'youtube' => 'YouTube'] as $k => $l) { text($c, 'footer', $k, "$l URL", 'Empty = hide'); } ?>
+          <?php text($c, 'footer', 'privacy_url', 'Privacy Policy URL', 'Empty = hide'); ?>
+          <?php text($c, 'footer', 'terms_url', 'Terms & Conditions URL', 'Empty = hide'); ?>
         <?php section_end(); ?>
 
         <?php section_start('email', 'Auto Email to Customer', 'Sent to everyone who fills the form. Use {name}, {service}, {email}.'); ?>
@@ -325,6 +345,7 @@ function section_end(): void { echo '</div></section>'; }
   </div>
 
   <script>
+    const ICONS = <?= json_encode(array_map(fn($n) => icon($n, 'h-5 w-5'), array_combine(ICON_CHOICES, ICON_CHOICES)), JSON_HEX_TAG) ?>;
     function addItem(btn) {
       const wrap = btn.parentElement;
       const list = wrap.querySelector('.rep-list');

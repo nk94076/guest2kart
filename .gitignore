@@ -4,3 +4,4 @@ data/*
 !data/.htaccess
 uploads/*
 !uploads/.htaccess
+node_modules/

@@ -39,6 +39,12 @@ Re-run step 3 any time to update. Leads DB lives in `/home/<site-user>/guest2kar
 2. Create an **App Password** (Google Account → Security → App passwords).
 3. Put your Gmail in `smtp_user` / `mail_from` and the app password in `smtp_pass`.
 
+## Styling
+Tailwind CSS is compiled to `assets/app.css` (committed, so the server needs no Node.js). After changing classes in PHP files run:
+```bash
+npm install && npm run build:css
+```
+
 ## Local development
 ```bash
 composer install
